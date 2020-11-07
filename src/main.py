@@ -5,7 +5,7 @@ import sys
 
 def load_assets():
     assets_names = ["seahorse1.png", "stingray1.png"]
-    assets_scales = [0.8, 0.5]
+    assets_scales = [0.3, 0.42] # TODO move these values to constants.py
     assets_dict = {}
     for n, s in zip(assets_names, assets_scales):
         img = pygame.image.load("assets/" + n)
