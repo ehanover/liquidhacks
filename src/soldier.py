@@ -1,22 +1,28 @@
 from constants import *
 import navigator
 import pygame
-from constants import *
 
 class Soldier(pygame.sprite.Sprite):
 
-    speed = 4.5
+    speed = SOLDIER_SPEED
     # range = 100
 
     def set_target(self, t):
         if t is None:
             self.vx = 0.0
             self.vy = 0.0
+            self.target = None
         else:
             self.target = t
             (dx, dy) = navigator.path_to(self, self.target)
             self.vx = dx * Soldier.speed
             self.vy = dy * Soldier.speed
+
+    def enemy_in_range(self, enemies):
+        for e in enemies:
+            if not e.dead and (navigator.dist(self, e) <= SOLDIER_RANGE):
+                return e
+        return None
 
     def calc_collisions(self, others):
         for other in others:
@@ -36,11 +42,17 @@ class Soldier(pygame.sprite.Sprite):
         return False
 
 
-    def move(self, others):
+    def move(self, others, enemies):
         clean_x = self.rect.x
         clean_y = self.rect.y
         vxs = [self.vx, 0.7*self.vx - 0.7*self.vy, 0.7*self.vx + 0.7*self.vy, 0.17*self.vx - 0.98*self.vy, 0.17*self.vx + 0.98*self.vy, -self.vy, self.vy]
         vys = [self.vy, 0.7*self.vy + 0.7*self.vy, -0.7*self.vx + 0.7*self.vy, 0.98*self.vx + 0.17*self.vy, -0.98*self.vx + 0.17*self.vy, self.vx, -self.vx]
+        
+        if self.attacking:
+            e = self.enemy_in_range(enemies)
+            if e is not None:
+                return e
+
         for i in range(len(vxs)):
             self.rect.x += vxs[i]
             self.rect.y += vys[i]
@@ -49,7 +61,8 @@ class Soldier(pygame.sprite.Sprite):
                 self.rect.y = clean_y
                 continue
             else:
-                return
+                return None
+        return None
 
 
     def __init__(self, x, y, img, selected_img):
@@ -66,6 +79,7 @@ class Soldier(pygame.sprite.Sprite):
         # self.rect.height = SOLDIER_RADIUS
 
         self.target = None
+        self.attacking = True
         self.vx = 0.0
         self.vy = 0.0
 

@@ -81,7 +81,8 @@ def main():
                         state.start_select(pygame.mouse.get_pos())
                 elif event.button == MOUSE_RIGHT:
                     # print("pressed right click")
-                    state.move(pygame.mouse.get_pos())
+                    if not amove_state:
+                        state.move(pygame.mouse.get_pos())
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == MOUSE_LEFT:
