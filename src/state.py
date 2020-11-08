@@ -21,6 +21,7 @@ class State:
         self.corner1 = (0, 0)
         self.explosions = {}
         self.attacks = {}
+        self.update_num = 0
 
         self.new_round(round_num)
 
@@ -84,6 +85,7 @@ class State:
 
     def update(self):
         assert(len(self.soldiers) == len(self.selected_soldiers))
+        self.update_num = (self.update_num + 1) % FIRE_INTERVAL
         for e in self.enemies:
             detonating = False
             if e.dead:
@@ -127,7 +129,7 @@ class State:
                 else:
                     s.set_target(s.target)
             e = s.move(self.soldiers, self.enemies)
-            if e is not None:  # soldier is attacking
+            if e is not None and self.update_num == 0:  # soldier is attacking
                 e.health -= ATTACK_DAMAGE
                 e.changeColor((255, 0, 0))
                 self.attacks[((s.rect.x+SOLDIER_RADIUS//2, s.rect.y+SOLDIER_RADIUS//2), (e.rect.x+ENEMY_RADIUS//2, e.rect.y+ENEMY_RADIUS//2))] = 3
