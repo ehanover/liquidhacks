@@ -19,6 +19,7 @@ class State:
         self.selecting = False
         self.amoving = False
         self.corner1 = (0, 0)
+        self.explosions = {}
 
         self.new_round(round_num)
 
@@ -77,6 +78,7 @@ class State:
             self.sprite_group.add(e)
         for s in self.soldiers:
             self.sprite_group.add(s)
+        self.explosions = {}
 
     def update(self):
         assert(len(self.soldiers) == len(self.selected_soldiers))
@@ -93,12 +95,13 @@ class State:
                 if not s.dead and navigator.dist(e, s) < ENEMY_RADIUS:
                     e.dead = True
                     detonating = True
+                    self.explosions[(e.rect.x, e.rect.y)] = 10
                     break
             if detonating:
                 for s in self.soldiers:
                     if navigator.dist(e, s) < DETONATE_DIST:
                         s.health -= DETONATE_DAMAGE
-                        s.changeColor((255,0,0))
+                        s.changeColor((255,0,0), (255, 255, 0))
             else:
                 e.move(self.enemies)
         for e in self.enemies:
@@ -156,6 +159,17 @@ class State:
             s.fill(SELECT_COLOR)
             screen.blit(s, (left, top))
 
+        # explosions
+        for pos, t in self.explosions.items():
+            if t == 0:
+                continue
+            self.explosions[pos] -= 1
+            s = pygame.Surface((DETONATE_DIST*2, DETONATE_DIST*2))
+            s.fill((255, 255, 255))
+            s.set_alpha(100)
+            pygame.draw.circle(s, DETONATE_COLOR, (DETONATE_DIST, DETONATE_DIST), DETONATE_DIST)
+            screen.blit(s, (pos[0] - DETONATE_DIST + ENEMY_RADIUS//2, pos[1] - DETONATE_DIST + ENEMY_RADIUS//2))
+
     def select(self, corner1, corner2):
         x_max = max(corner1[0], corner2[0])
         x_min = min(corner1[0], corner2[0])
@@ -190,7 +204,10 @@ class State:
         # assert(len(self.soldiers) == len(self.selected_soldiers))
         for i, s in enumerate(self.soldiers):
             if self.selected_soldiers[i]:
-                pass
+                fake_sprite = navigator.FakeSprite()
+                fake_sprite.rect.x = mouse_pos[0]
+                fake_sprite.rect.y = mouse_pos[1]
+                s.set_target(fake_sprite)
 
     def stop(self):
         # assert(len(self.soldiers) == len(self.selected_soldiers))

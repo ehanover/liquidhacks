@@ -21,7 +21,7 @@ def path_to(me, other):
             return (0, 0)
 
 def dist(a, b):
-    return math.sqrt( (a.rect.x-b.rect.x)**2 + (a.rect.y-b.rect.y)**2 )
+    return math.sqrt( (a.rect.x+a.rect.width//2-b.rect.x-b.rect.width//2)**2 + (a.rect.y+a.rect.height//2-b.rect.y-b.rect.height//2)**2 )
 
 def closest_sprite(me, others):
     maxdist = 100000000
