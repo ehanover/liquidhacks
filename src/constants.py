@@ -1,3 +1,4 @@
+import pygame
 
 WIDTH = 800
 HEIGHT = 600
@@ -10,3 +11,7 @@ MOUSE_RIGHT = 3
 
 ENEMY_RADIUS = 40
 SOLDIER_RADIUS = 30
+
+DETONATE_DIST = 5
+
+SELECT_COLOR = pygame.Color(50, 255, 50, a=100)
