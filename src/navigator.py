@@ -15,7 +15,10 @@ def path_to(me, other):
         dy = float(other.rect.y - me.rect.y)
         m = math.sqrt(dx*dx + dy*dy)
         # print("dx:" + str(dx) + ", m=" + str(m))
-        return (dx/m, dy/m)
+        if m != 0:
+            return (dx/m, dy/m)
+        else:
+            return (0, 0)
 
 def dist(a, b):
     return math.sqrt( (a.rect.x-b.rect.x)**2 + (a.rect.y-b.rect.y)**2 )
