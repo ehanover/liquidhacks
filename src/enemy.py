@@ -13,30 +13,20 @@ class Enemy(pygame.sprite.Sprite):
         self.vx = dx * Enemy.speed
         self.vy = dy * Enemy.speed
 
-    def try_move(self, others):
-        vxs = [self.vx, 0.7*self.vx - 0.7*self.vy, 0.7*self.vx + 0.7*self.vy]
-        vys = [self.vy, 0.7*self.vx + 0.7*self.vy, -0.7*self.vx + 0.7*self.vy]
+    def move(self, others):
+        clean_x = self.rect.x
+        clean_y = self.rect.y
+        vxs = [self.vx, 0.7*self.vx - 0.7*self.vy, 0.7*self.vx + 0.7*self.vy, 0.17*self.vx - 0.98*self.vy, 0.17*self.vx + 0.98*self.vy, -self.vy, self.vy]
+        vys = [self.vy, 0.7*self.vy + 0.7*self.vy, -0.7*self.vx + 0.7*self.vy, 0.98*self.vx + 0.17*self.vy, -0.98*self.vx + 0.17*self.vy, self.vx, -self.vx]
         for i in range(len(vxs)):
             self.rect.x += vxs[i]
             self.rect.y += vys[i]
-            for other in others:
-                if self.rect.colliderect(other):
-                    self.rect.x -= vxs[i]
-                    self.rect.y -= vys[i]
-                else:
-                    return
-
-    def move(self, others):
-        if self.target is None or self.dead:
-            return
-        if self.target.dead:
-            self.target = None # the target will get resassigned by state.py
-            self.vx = 0.0
-            self.vy = 0.0
-            return
-        # self.rect.x += self.vx  # TODO multiply by delta time?
-        # self.rect.y += self.vy
-        self.try_move(others)
+            if navigator.calc_collisions(self, others):
+                self.rect.x = clean_x
+                self.rect.y = clean_y
+                continue
+            else:
+                return
 
     def __init__(self, x, y, img):
         super().__init__() # pygame.sprite.Sprite.__init__(self)

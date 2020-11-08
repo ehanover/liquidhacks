@@ -1,5 +1,6 @@
 import math
 import pygame
+from constants import *
 
 class FakeSprite(pygame.sprite.Sprite):
     def __init__(self):
@@ -30,4 +31,21 @@ def closest_sprite(me, others):
             maxdist = nd
             closest = k
     return closest
+
+def calc_collisions(me, others):
+        for other in others:
+            if other is not me and not other.dead:
+                '''
+                if me.rect.colliderect(other) != -1:
+                    return True
+                '''
+                # tunable collision attempt
+                max_x = max(me.rect.x, other.rect.x)
+                min_x = min(me.rect.x, other.rect.x)
+                max_y = max(me.rect.y, other.rect.y)
+                min_y = min(me.rect.y, other.rect.y)
+                if min_x + SOLDIER_RADIUS > max_x:
+                    if min_y + SOLDIER_RADIUS > max_y:
+                        return True
+        return False
 

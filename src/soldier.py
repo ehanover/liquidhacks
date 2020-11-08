@@ -1,5 +1,6 @@
 import navigator
 import pygame
+from constants import *
 
 class Soldier(pygame.sprite.Sprite):
 
@@ -16,23 +17,39 @@ class Soldier(pygame.sprite.Sprite):
             self.vx = dx * Soldier.speed
             self.vy = dy * Soldier.speed
 
-    def try_move(self, others):
-        vxs = [self.vx, 0.7*self.vx - 0.7*self.vy, 0.7*self.vx + 0.7*self.vy]
-        vys = [self.vy, 0.7*self.vx + 0.7*self.vy, -0.7*self.vx + 0.7*self.vy]
+    def calc_collisions(self, others):
+        for other in others:
+            if other is not self and not other.dead:
+                '''
+                if self.rect.colliderect(other) != -1:
+                    return True
+                '''
+                # tunable collision attempt
+                max_x = max(self.rect.x, other.rect.x)
+                min_x = min(self.rect.x, other.rect.x)
+                max_y = max(self.rect.y, other.rect.y)
+                min_y = min(self.rect.y, other.rect.y)
+                if min_x + SOLDIER_RADIUS > max_x:
+                    if min_y + SOLDIER_RADIUS > max_y:
+                        return True
+        return False
+
+
+    def move(self, others):
+        clean_x = self.rect.x
+        clean_y = self.rect.y
+        vxs = [self.vx, 0.7*self.vx - 0.7*self.vy, 0.7*self.vx + 0.7*self.vy, 0.17*self.vx - 0.98*self.vy, 0.17*self.vx + 0.98*self.vy, -self.vy, self.vy]
+        vys = [self.vy, 0.7*self.vy + 0.7*self.vy, -0.7*self.vx + 0.7*self.vy, 0.98*self.vx + 0.17*self.vy, -0.98*self.vx + 0.17*self.vy, self.vx, -self.vx]
         for i in range(len(vxs)):
             self.rect.x += vxs[i]
             self.rect.y += vys[i]
-            for other in others:
-                if self.rect.colliderect(other):
-                    self.rect.x -= vxs[i]
-                    self.rect.y -= vys[i]
-                else:
-                    return
-
-    def move(self, others):
-        # self.rect.x += self.vx # TODO multiply by delta time?
-        # self.rect.y += self.vy
-        self.try_move(others)
+            if navigator.calc_collisions(self, others):
+                self.rect.x = clean_x
+                self.rect.y = clean_y
+                continue
+            else:
+                return
+                
 
     def __init__(self, x, y, img):
         super().__init__() # pygame.sprite.Sprite.__init__(self)
@@ -41,6 +58,9 @@ class Soldier(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
+        # self.rect.width = SOLDIER_RADIUS
+        # self.rect.height = SOLDIER_RADIUS
 
         self.target = None
         self.vx = 0.0
@@ -63,7 +83,8 @@ class Soldier(pygame.sprite.Sprite):
         colorVal = self.health//100
 
         pass
-    def change
+    def change(self):
+        pass
         # pygame.draw.rect(win, )
     '''
     def palette_swap(picture, oldColor, newColor):

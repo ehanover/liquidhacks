@@ -24,7 +24,7 @@ class State:
 
     def make_soldiers(self, round_num):
         # Places the soldiers in a equidistant spiral
-        num_soldiers = int((round_num + 30) * 0.8) # TODO tweak soldier formula to affect difficulty
+        num_soldiers = int((round_num + 5) * 1) # TODO tweak soldier formula to affect difficulty
         # num_soldiers = 1
         centerx = WIDTH//2
         centery = HEIGHT//2 + 120
@@ -32,7 +32,7 @@ class State:
         
         # Stolen from https://stackoverflow.com/a/13901170
         radius = 180
-        chord = SOLDIER_RADIUS # (how close each soldier is along the spiral)
+        chord = 2*SOLDIER_RADIUS # (how close each soldier is along the spiral)
         awayStep = radius/35 # (how tight the spiral is - lower val is looser)
         theta = chord / awayStep
         while len(ret) < num_soldiers:
@@ -47,7 +47,7 @@ class State:
 
     def make_enemies(self, round_num):
         # Places the enemies in staggered rows at the top of the screen
-        num_enemies = (round_num + 1) * 6 # TODO tweak enemy formula to affect difficulty
+        num_enemies = (round_num + 3) * 2 # TODO tweak enemy formula to affect difficulty
         # num_enemies = 1
         num_cols = 10
         ret = []
@@ -65,6 +65,10 @@ class State:
         return ret
 
     def new_round(self, round_num):
+        for s in self.soldiers:
+            s.kill()
+        for e in self.enemies:
+            e.kill()
         self.soldiers = self.make_soldiers(round_num)
         self.selected_soldiers = [0 for _ in range(len(self.soldiers))]
         self.enemies = self.make_enemies(round_num)
@@ -77,19 +81,25 @@ class State:
     def update(self):
         assert(len(self.soldiers) == len(self.selected_soldiers))
         for e in self.enemies:
+            detonating = False
             if e.dead:
                 continue
-            if e.target is None:
+            if e.target is None or e.target.dead:
                 e.set_target(random.choice(self.soldiers))
                 # e.set_target(navigator.closest_sprite(e, self.soldiers))
             else:  # recalculate vector
                 e.set_target(e.target)
             for s in self.soldiers:
-                if navigator.dist(e, s) < DETONATE_DIST:
-                    s.health -= DETONATE_DAMAGE
+                if not s.dead and navigator.dist(e, s) < ENEMY_RADIUS:
                     e.dead = True
-                    continue  # 1 or 2? doesnt matter rly
-            e.move(self.enemies)
+                    detonating = True
+                    break
+            if detonating:
+                for s in self.soldiers:
+                    if navigator.dist(e, s) < DETONATE_DIST:
+                        s.health -= DETONATE_DAMAGE
+            else:
+                e.move(self.enemies)
         for e in self.enemies:
             if e.dead:
                 e.kill()
@@ -151,7 +161,11 @@ class State:
         y_max = max(corner1[1], corner2[1])
         y_min = min(corner1[1], corner2[1])
         for i, s in enumerate(self.soldiers):
-            if x_min <= s.rect.x and s.rect.x + SOLDIER_RADIUS <= x_max and y_min <= s.rect.y and s.rect.y + SOLDIER_RADIUS <= y_max:
+            center_x = s.rect.x + s.rect.width
+            center_y = s.rect.y + s.rect.height
+            if x_min <= center_x and center_x <= x_max and y_min <= center_y and center_y <= y_max:
+                self.selected_soldiers[i] = True
+            elif s.rect.contains(pygame.Rect(x_min, y_max, x_max - x_min, y_max - y_min)):
                 self.selected_soldiers[i] = True
             else:
                 self.selected_soldiers[i] = False

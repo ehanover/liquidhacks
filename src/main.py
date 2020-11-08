@@ -34,6 +34,17 @@ def main():
     box_select_state = False
 
     while not game_over: # TODO create a menu screen
+
+        if state.get_status() != ROUND_IN_PROGRESS:
+            if state.get_status() == ROUND_WIN:
+                pygame.time.wait(2000)
+                round_num += 1
+                state.new_round(round_num)
+            else:
+                pygame.time.wait(2000)
+                game_over = True
+                break
+
         # Update
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -92,16 +103,6 @@ def main():
         pygame.display.update()
 
         state.update()
-
-        if state.get_status() != ROUND_IN_PROGRESS:
-            if state.get_status == ROUND_WIN:
-                pygame.time.wait(5000)
-                round_num += 1
-                state.new_round(round_num)
-            else:
-                pygame.time.wait(5000)
-                pygame.quit()
-                sys.exit()
 
         clock.tick(FPS)
     pygame.quit()
