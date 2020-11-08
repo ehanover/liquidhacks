@@ -25,7 +25,6 @@ class State:
         num_soldiers = int((round_num + 30) * 0.8) # TODO tweak soldier formula to affect difficulty
         centerx = WIDTH//2
         centery = HEIGHT//2 + 120
-        self.selected_soldiers = [0 for _ in range(num_soldiers)]
         ret = []
         
         # Stolen from https://stackoverflow.com/a/13901170
@@ -63,6 +62,7 @@ class State:
 
     def new_round(self, round_num):
         self.soldiers = self.make_soldiers(round_num)
+        self.selected_soldiers = [0 for _ in range(len(self.soldiers))]
         self.enemies = self.make_enemies(round_num)
         self.deselect_all()
         for e in self.enemies:
@@ -73,8 +73,7 @@ class State:
     def update(self):
         for e in self.enemies:
             if e.target is None:
-                e.target = navigator.closest_sprite(e, self.soldiers)
-                e.move_to_target()
+                e.set_target(navigator.closest_sprite(e, self.soldiers))
             elif navigator.dist(e, e.target) < DETONATE_DIST:
                 e.dead = True
                 continue
@@ -93,7 +92,11 @@ class State:
         self.sprite_group.draw(screen)
 
         if self.selecting:
-            pygame.draw.rect(screen, SELECT_COLOR, pygame.Rect(self.rectangle[0][0], self.rectangle[0][1], self.rectangle[1][0], self.rectangle[1][1]))
+            left = min(self.rectangle[0][0], self.rectangle[1][0])
+            top = max(self.rectangle[0][1], self.rectangle[1][1])
+            width = abs(self.rectangle[0][0] - self.rectangle[1][0])
+            height = abs(self.rectangle[0][1] - self.rectangle[1][1])
+            pygame.draw.rect(screen, SELECT_COLOR, pygame.Rect(left, top, width, height))
 
     def select(self, corner1, corner2):
         x_max = max(corner1[0], corner2[0])

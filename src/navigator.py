@@ -17,5 +17,5 @@ def closest_sprite(me, sprites):
         if nd < maxdist:
             maxdist = nd
             closest = k
-    return k
+    return closest
 
