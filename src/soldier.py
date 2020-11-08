@@ -16,10 +16,23 @@ class Soldier(pygame.sprite.Sprite):
             self.vx = dx * Soldier.speed
             self.vy = dy * Soldier.speed
 
-    def move(self):
-        self.rect.x += self.vx # TODO multiply by delta time?
-        self.rect.y += self.vy
-        # print("x=" + str(self.rect.x) + ", vx=" + str(self.vx))
+    def try_move(self, others):
+        vxs = [self.vx, 0.7*self.vx - 0.7*self.vy, 0.7*self.vx + 0.7*self.vy]
+        vys = [self.vy, 0.7*self.vx + 0.7*self.vy, -0.7*self.vx + 0.7*self.vy]
+        for i in range(len(vxs)):
+            self.rect.x += vxs[i]
+            self.rect.y += vys[i]
+            for other in others:
+                if self.rect.colliderect(other):
+                    self.rect.x -= vxs[i]
+                    self.rect.y -= vys[i]
+                else:
+                    return
+
+    def move(self, others):
+        # self.rect.x += self.vx # TODO multiply by delta time?
+        # self.rect.y += self.vy
+        self.try_move(others)
 
     def __init__(self, x, y, img):
         super().__init__() # pygame.sprite.Sprite.__init__(self)
@@ -47,9 +60,21 @@ class Soldier(pygame.sprite.Sprite):
         scrollDown = 5
 
     def displayHP(self, x, y):
+        colorVal = self.health//100
+
         pass
+    def change
         # pygame.draw.rect(win, )
     '''
+    def palette_swap(picture, oldColor, newColor):
+        picTemp = pygame.Surface(health.img.get_size())
+        picTemp.fill(newColor)
+        picture.set_colorkey(oldColor)
+        picTemp.blit(picture, (0,0))
+        return picTemp
+
+
+    
     def attack(self):
         if (checkAttack):
             pass
@@ -72,5 +97,4 @@ class Soldier(pygame.sprite.Sprite):
     def checkAttack(self, check):
         pass
     '''
-
 

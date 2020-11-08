@@ -13,7 +13,20 @@ class Enemy(pygame.sprite.Sprite):
         self.vx = dx * Enemy.speed
         self.vy = dy * Enemy.speed
 
-    def move(self):
+    def try_move(self, others):
+        vxs = [self.vx, 0.7*self.vx - 0.7*self.vy, 0.7*self.vx + 0.7*self.vy]
+        vys = [self.vy, 0.7*self.vx + 0.7*self.vy, -0.7*self.vx + 0.7*self.vy]
+        for i in range(len(vxs)):
+            self.rect.x += vxs[i]
+            self.rect.y += vys[i]
+            for other in others:
+                if self.rect.colliderect(other):
+                    self.rect.x -= vxs[i]
+                    self.rect.y -= vys[i]
+                else:
+                    return
+
+    def move(self, others):
         if self.target is None or self.dead:
             return
         if self.target.dead:
@@ -21,8 +34,9 @@ class Enemy(pygame.sprite.Sprite):
             self.vx = 0.0
             self.vy = 0.0
             return
-        self.rect.x += self.vx  # TODO multiply by delta time?
-        self.rect.y += self.vy
+        # self.rect.x += self.vx  # TODO multiply by delta time?
+        # self.rect.y += self.vy
+        self.try_move(others)
 
     def __init__(self, x, y, img):
         super().__init__() # pygame.sprite.Sprite.__init__(self)

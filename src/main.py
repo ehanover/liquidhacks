@@ -21,6 +21,7 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
+    font = pygame.font.SysFont(None, 24)
 
     game_over = False
     round_num = 0
@@ -83,6 +84,9 @@ def main():
 
         # Draw
         state.draw(screen, pygame.mouse.get_pos())
+
+        img = font.render("Currently playing round " + str(1 + round_num), True, (50, 200, 200))
+        screen.blit(img, (20, 20))
 
         # pygame.display.flip()
         pygame.display.update()

@@ -47,7 +47,7 @@ class State:
 
     def make_enemies(self, round_num):
         # Places the enemies in staggered rows at the top of the screen
-        num_enemies = (round_num + 4) * 6 # TODO tweak enemy formula to affect difficulty
+        num_enemies = (round_num + 1) * 6 # TODO tweak enemy formula to affect difficulty
         # num_enemies = 1
         num_cols = 10
         ret = []
@@ -80,12 +80,16 @@ class State:
             if e.dead:
                 continue
             if e.target is None:
-                e.set_target(navigator.closest_sprite(e, self.soldiers))
-            if navigator.dist(e, e.target) < DETONATE_DIST:
-                e.target.health -= DETONATE_DAMAGE
-                e.dead = True
-                continue
-            e.move()
+                e.set_target(random.choice(self.soldiers))
+                # e.set_target(navigator.closest_sprite(e, self.soldiers))
+            else:  # recalculate vector
+                e.set_target(e.target)
+            for s in self.soldiers:
+                if navigator.dist(e, s) < DETONATE_DIST:
+                    s.health -= DETONATE_DAMAGE
+                    e.dead = True
+                    continue  # 1 or 2? doesnt matter rly
+            e.move(self.enemies)
         for e in self.enemies:
             if e.dead:
                 e.kill()
@@ -96,9 +100,12 @@ class State:
             if s.health <= 0:
                 s.dead = True
                 continue
-            if s.target is not None and navigator.dist(s, s.target) < PATHFIND_DIST:
-                e.set_target(None)
-            s.move()
+            if s.target is not None:
+                if navigator.dist(s, s.target) < PATHFIND_DIST:
+                    s.set_target(None)
+                else:
+                    s.set_target(s.target)
+            s.move(self.soldiers)
 
             if self.selected_soldiers[i]:
                 self.soldiers[i].image = self.soldier_selected_img
@@ -119,6 +126,7 @@ class State:
         # for e in self.enemies:
         #     e.draw(screen)
         self.sprite_group.draw(screen)
+        
 
         # transparent stuff is copied from stackoverflow
         if self.amoving:
@@ -155,23 +163,22 @@ class State:
         self.selected_soldiers = [0 for _ in self.selected_soldiers]
 
     def move(self, mouse_pos):
-        print("mouse_pos=" + str(mouse_pos))
-        assert(len(self.soldiers) == len(self.selected_soldiers))
+        # assert(len(self.soldiers) == len(self.selected_soldiers))
         for i, s in enumerate(self.soldiers):
             if self.selected_soldiers[i]:
                 fake_sprite = navigator.FakeSprite()
-                fake_sprite.x = mouse_pos[0]
-                fake_sprite.y = mouse_pos[1]
+                fake_sprite.rect.x = mouse_pos[0]
+                fake_sprite.rect.y = mouse_pos[1]
                 s.set_target(fake_sprite)
 
     def attack_move(self, mouse_pos):
-        assert(len(self.soldiers) == len(self.selected_soldiers))
+        # assert(len(self.soldiers) == len(self.selected_soldiers))
         for i, s in enumerate(self.soldiers):
             if self.selected_soldiers[i]:
                 pass
 
     def stop(self):
-        assert(len(self.soldiers) == len(self.selected_soldiers))
+        # assert(len(self.soldiers) == len(self.selected_soldiers))
         for i, s in enumerate(self.soldiers):
             if self.selected_soldiers[i]:
                 pass
