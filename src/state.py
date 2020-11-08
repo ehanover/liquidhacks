@@ -7,22 +7,25 @@ import random
 from soldier import Soldier
 
 class State:
-    def __init__(self, round_num, soldier_img, enemy_img):
+    def __init__(self, round_num, assets_dict):
 
-        self.soldier_img = soldier_img
-        self.enemy_img = enemy_img
+        self.soldier_img = assets_dict["seahorse1.png"]
+        self.soldier_selected_img = assets_dict["seahorse1_selected.png"]
+        self.enemy_img = assets_dict["stingray1.png"]
         self.sprite_group = pygame.sprite.Group()
         self.soldiers =  []
         self.enemies = []
         self.selected_solders = []  # bool array
         self.selecting = False
-        self.rectangle = ((0, 0), (0, 0))
+        self.amoving = False
+        self.corner1 = (0, 0)
 
         self.new_round(round_num)
 
     def make_soldiers(self, round_num):
         # Places the soldiers in a equidistant spiral
         num_soldiers = int((round_num + 30) * 0.8) # TODO tweak soldier formula to affect difficulty
+        # num_soldiers = 1
         centerx = WIDTH//2
         centery = HEIGHT//2 + 120
         ret = []
@@ -44,7 +47,8 @@ class State:
 
     def make_enemies(self, round_num):
         # Places the enemies in staggered rows at the top of the screen
-        num_enemies = (round_num + 1) * 6 # TODO tweak enemy formula to affect difficulty
+        num_enemies = (round_num + 4) * 6 # TODO tweak enemy formula to affect difficulty
+        # num_enemies = 1
         num_cols = 10
         ret = []
         x = 0
@@ -71,10 +75,14 @@ class State:
             self.sprite_group.add(s)
 
     def update(self):
+        assert(len(self.soldiers) == len(self.selected_soldiers))
         for e in self.enemies:
+            if e.dead:
+                continue
             if e.target is None:
                 e.set_target(navigator.closest_sprite(e, self.soldiers))
-            elif navigator.dist(e, e.target) < DETONATE_DIST:
+            if navigator.dist(e, e.target) < DETONATE_DIST:
+                e.target.health -= DETONATE_DAMAGE
                 e.dead = True
                 continue
             e.move()
@@ -82,8 +90,29 @@ class State:
             if e.dead:
                 e.kill()
 
+        for i, s in enumerate(self.soldiers):
+            if s.dead:
+                continue
+            if s.health <= 0:
+                s.dead = True
+                continue
+            if s.target is not None and navigator.dist(s, s.target) < PATHFIND_DIST:
+                e.set_target(None)
+            s.move()
 
-    def draw(self, screen):
+            if self.selected_soldiers[i]:
+                self.soldiers[i].image = self.soldier_selected_img
+            else:
+                self.soldiers[i].image = self.soldier_img
+
+        for s in self.soldiers:
+            if s.dead:
+                s.kill()
+
+        # self.enemies = [e for e in self.enemies if not e.dead]
+        # self.soldiers = [s for s in self.soldiers if not s.dead]
+
+    def draw(self, screen, mouse_pos):
         screen.fill((255, 255, 255))
         # for s in self.soldiers:
         #     s.draw(screen)
@@ -91,12 +120,22 @@ class State:
         #     e.draw(screen)
         self.sprite_group.draw(screen)
 
-        if self.selecting:
-            left = min(self.rectangle[0][0], self.rectangle[1][0])
-            top = max(self.rectangle[0][1], self.rectangle[1][1])
-            width = abs(self.rectangle[0][0] - self.rectangle[1][0])
-            height = abs(self.rectangle[0][1] - self.rectangle[1][1])
-            pygame.draw.rect(screen, SELECT_COLOR, pygame.Rect(left, top, width, height))
+        # transparent stuff is copied from stackoverflow
+        if self.amoving:
+            s = pygame.Surface((SOLDIER_RADIUS, SOLDIER_RADIUS))
+            s.set_alpha(100)
+            s.fill((255, 255, 0))
+            screen.blit(s, (mouse_pos[0] - SOLDIER_RADIUS / 2, mouse_pos[1] - SOLDIER_RADIUS / 2))
+
+        elif self.selecting:
+            left = min(self.corner1[0], mouse_pos[0])
+            top = min(self.corner1[1], mouse_pos[1])
+            width = abs(self.corner1[0] - mouse_pos[0])
+            height = abs(self.corner1[1] - mouse_pos[1])
+            s = pygame.Surface((width, height))
+            s.set_alpha(100)
+            s.fill(SELECT_COLOR)
+            screen.blit(s, (left, top))
 
     def select(self, corner1, corner2):
         x_max = max(corner1[0], corner2[0])
@@ -104,24 +143,32 @@ class State:
         y_max = max(corner1[1], corner2[1])
         y_min = min(corner1[1], corner2[1])
         for i, s in enumerate(self.soldiers):
-            if x_min <= s.rect.x and s.rect.x <= x_max and y_min <= s.rect.y and s.rect.y <= y_max:
+            if x_min <= s.rect.x and s.rect.x + SOLDIER_RADIUS <= x_max and y_min <= s.rect.y and s.rect.y + SOLDIER_RADIUS <= y_max:
                 self.selected_soldiers[i] = True
             else:
                 self.selected_soldiers[i] = False
                 
     def select_all(self):
-        self.selected_soldiers = [1 for _ in self.soldiers]
+        self.selected_soldiers = [1 for _ in self.selected_soldiers]
 
     def deselect_all(self):
-        self.selected_soldiers = [0 for _ in self.soldiers]
+        self.selected_soldiers = [0 for _ in self.selected_soldiers]
 
     def move(self, mouse_pos):
+        print("mouse_pos=" + str(mouse_pos))
         assert(len(self.soldiers) == len(self.selected_soldiers))
-        pass
+        for i, s in enumerate(self.soldiers):
+            if self.selected_soldiers[i]:
+                fake_sprite = navigator.FakeSprite()
+                fake_sprite.x = mouse_pos[0]
+                fake_sprite.y = mouse_pos[1]
+                s.set_target(fake_sprite)
 
     def attack_move(self, mouse_pos):
         assert(len(self.soldiers) == len(self.selected_soldiers))
-        pass
+        for i, s in enumerate(self.soldiers):
+            if self.selected_soldiers[i]:
+                pass
 
     def stop(self):
         assert(len(self.soldiers) == len(self.selected_soldiers))
@@ -129,12 +176,19 @@ class State:
             if self.selected_soldiers[i]:
                 pass
 
-    def start_select(self):
+    def start_select(self, corner1):
+        self.corner1 = corner1
         self.selecting = True
 
-    def end_select(self):
-        self.select(self.rectangle[0], self.rectangle[1])
+    def end_select(self, corner2):
+        self.select(self.corner1, corner2)
         self.selecting = False
 
-    def set_rectangle(self, corner1, corner2):
-        self.rectangle = (corner1, corner2)
+    def get_status(self):
+        for s in self.soldiers:
+            if not s.dead:
+                for e in self.enemies:
+                    if not e.dead:
+                        return ROUND_IN_PROGRESS
+                return ROUND_WIN
+        return ROUND_LOSS

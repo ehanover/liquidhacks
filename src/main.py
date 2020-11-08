@@ -4,8 +4,8 @@ from state import State
 import sys
 
 def load_assets():
-    assets_names = ["seahorse1.png", "stingray1.png"]
-    assets_scales = [0.3, 0.42] # TODO move these values to constants.py
+    assets_names = ["seahorse1.png", "seahorse1_selected.png", "stingray1.png"]
+    assets_scales = [0.45, 0.45, 0.42] # TODO move these values to constants.py
     assets_dict = {}
     for n, s in zip(assets_names, assets_scales):
         img = pygame.image.load("assets/" + n)
@@ -28,10 +28,9 @@ def main():
     # Init game components
     # state holds all the state on the soldiers and the enemies
     # main holds all the state on the mouse and keyboard
-    state = State(round_num, assets_dict["seahorse1.png"], assets_dict["stingray1.png"])
+    state = State(round_num, assets_dict)
     amove_state = False
     box_select_state = False
-    box_corner1 = (0, 0)
 
     while not game_over: # TODO create a menu screen
         # Update
@@ -41,13 +40,16 @@ def main():
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
-                    print("pressed a")
+                    # print("pressed a")
                     # toggle mouse cursor, toggle attack move
                     amove_state = not amove_state
+                    state.amoving = amove_state
                 elif event.key == pygame.K_s:
-                    print("pressed s")
+                    # print("pressed s")
                     # stop selected units
                     state.stop()
+                elif event.key == pygame.K_LCTRL:
+                    state.select_all()
             
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
@@ -57,40 +59,45 @@ def main():
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == MOUSE_LEFT:
-                    print("pressed left click")
+                    # print("pressed left click")
                     if amove_state:
-                        # attack move
-                        pass
+                        amove_state = False
+                        state.amoving = False
+                        state.attack_move(pygame.mouse.get_pos())
                     else:
                         box_select_state = True
-                        state.start_select()
-                        box_corner1 = pygame.mouse.get_pos()
+                        state.start_select(pygame.mouse.get_pos())
                 elif event.button == MOUSE_RIGHT:
-                    print("pressed right click")
-                    # move
+                    # print("pressed right click")
+                    state.move(pygame.mouse.get_pos())
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == MOUSE_LEFT:
-                    print("released left click")
-                    if amove_state:
-                        amove_state = False
-                    elif box_select_state:
+                    # print("released left click")
+                    if box_select_state:
                         box_select_state = False
-                        state.end_select()
+                        state.end_select(pygame.mouse.get_pos())
                 elif event.button == MOUSE_RIGHT:
-                    print("released right click")
-
-        if box_select_state:
-            box_corner2 = pygame.mouse.get_pos()
-            state.set_rectangle(box_corner1, box_corner2)
+                    # print("released right click")
+                    pass
 
         # Draw
-        state.draw(screen)
+        state.draw(screen, pygame.mouse.get_pos())
 
         # pygame.display.flip()
         pygame.display.update()
 
         state.update()
+
+        if state.get_status() != ROUND_IN_PROGRESS:
+            if state.get_status == ROUND_WIN:
+                pygame.time.wait(5000)
+                round_num += 1
+                state.new_round(round_num)
+            else:
+                pygame.time.wait(5000)
+                pygame.quit()
+                sys.exit()
 
         clock.tick(FPS)
     pygame.quit()
