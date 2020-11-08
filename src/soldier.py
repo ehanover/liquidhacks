@@ -1,3 +1,4 @@
+from constants import *
 import navigator
 import pygame
 
@@ -63,7 +64,20 @@ class Soldier(pygame.sprite.Sprite):
         colorVal = self.health//100
 
         pass
-    def change
+    def changeColor(self, newColor):
+        w, h = self.image.get_size()
+        r, g, b = newColor
+        for i in range(h):
+            for j in range(w):
+                oldColor = self.image.get_at((i, j))
+                oR = oldColor[0]
+                oG = oldColor[1]
+                oB = oldColor[2]
+                r = (oR - r)*(-(DETONATE_DAMAGE/100))
+                g = (oG - g)*(-(DETONATE_DAMAGE/100))
+                b = (oB - b)*(-(DETONATE_DAMAGE/100))
+                self.image.set_at((i,j), (r,g,b))
+
         # pygame.draw.rect(win, )
     '''
     def palette_swap(picture, oldColor, newColor):

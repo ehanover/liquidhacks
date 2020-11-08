@@ -87,6 +87,7 @@ class State:
             for s in self.soldiers:
                 if navigator.dist(e, s) < DETONATE_DIST:
                     s.health -= DETONATE_DAMAGE
+                    s.changeColor((255,0,0))
                     e.dead = True
                     continue  # 1 or 2? doesnt matter rly
             e.move(self.enemies)
