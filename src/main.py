@@ -22,6 +22,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 24)
+    font_big = pygame.font.SysFont(None, 50, bold=True)
 
     game_over = False
     round_num = 0
@@ -37,10 +38,18 @@ def main():
 
         if state.get_status() != ROUND_IN_PROGRESS:
             if state.get_status() == ROUND_WIN:
+                img = font_big.render("Completed Round " + str(1 + round_num), True, (0, 0, 0))
+                tw, th = img.get_size()
+                screen.blit(img, (WIDTH//2-tw//2, HEIGHT//2-th//2))
+                pygame.display.update()
                 pygame.time.wait(2000)
                 round_num += 1
                 state.new_round(round_num)
             else:
+                img = font_big.render("Game Over!", True, (0, 0, 0))
+                tw, th = img.get_size()
+                screen.blit(img, (WIDTH//2-tw//2, HEIGHT//2-th//2))
+                pygame.display.update()
                 pygame.time.wait(2000)
                 game_over = True
                 break
