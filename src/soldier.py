@@ -52,10 +52,12 @@ class Soldier(pygame.sprite.Sprite):
                 return
                 
 
-    def __init__(self, x, y, img):
+    def __init__(self, x, y, img, selected_img):
         super().__init__() # pygame.sprite.Sprite.__init__(self)
 
-        self.image = img
+        self.img = img.copy()
+        self.selected_img = selected_img.copy()
+        self.image = self.img
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -78,7 +80,7 @@ class Soldier(pygame.sprite.Sprite):
         pass
 
     def changeColor(self, newColor):
-        #self.image = pygame.image.fromstring(pygame.image.tostring(self.image, "RGBA"), self.image.get_size(), "RGBA")
+        # self.image = self.image.copy()
         w, h = self.image.get_size()
         r, g, b = newColor
         for i in range(h):

@@ -40,7 +40,7 @@ class State:
             around = theta + 10 # How far around the center.
             ix = centerx + math.cos (around) * away # Convert 'around' and 'away' to X and Y.
             iy = centery + math.sin (around) * away
-            ret.append(Soldier(ix, iy, self.soldier_img))
+            ret.append(Soldier(ix, iy, self.soldier_img, self.soldier_selected_img))
 
             theta += chord / away # to a first approximation, the points are on a circle so the angle between them is chord/radius
         return ret
@@ -119,9 +119,9 @@ class State:
             s.move(self.soldiers)
 
             if self.selected_soldiers[i]:
-                self.soldiers[i].image = self.soldier_selected_img
+                self.soldiers[i].image = self.soldiers[i].selected_img
             else:
-                self.soldiers[i].image = self.soldier_img
+                self.soldiers[i].image = self.soldiers[i].img
 
         for s in self.soldiers:
             if s.dead:
