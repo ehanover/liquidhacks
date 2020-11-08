@@ -1,3 +1,4 @@
+from constants import *
 import navigator
 import pygame
 from constants import *
@@ -71,20 +72,29 @@ class Soldier(pygame.sprite.Sprite):
         # self.selected = False
         self.target = None
 
-        keys = pygame.key.get_pressed()
-        vel = 1
-        leftClick = 1
-        middleClick = 2
-        rightClick = 3
-        scrollUp = 4
-        scrollDown = 5
-
     def displayHP(self, x, y):
         colorVal = self.health//100
 
         pass
-    def change(self):
-        pass
+
+    def changeColor(self, newColor):
+        #self.image = pygame.image.fromstring(pygame.image.tostring(self.image, "RGBA"), self.image.get_size(), "RGBA")
+        w, h = self.image.get_size()
+        r, g, b = newColor
+        for i in range(h):
+            for j in range(w):
+                oldColor = self.image.get_at((j, i))
+                oR = oldColor[0]
+                oG = oldColor[1]
+                oB = oldColor[2]
+                oR -= ((1 - (self.health/100))*(oR - r)//1)
+                oG -= ((1 - (self.health/100))*(oG - g)//1)
+                oB -= ((1 - (self.health/100))*(oB - b)//1)
+                if (self.health < 0):
+                    self.health = 0
+                    break
+                self.image.set_at((j, i), (oR,oG,oB))
+
         # pygame.draw.rect(win, )
     '''
     def palette_swap(picture, oldColor, newColor):
@@ -95,7 +105,7 @@ class Soldier(pygame.sprite.Sprite):
         return picTemp
 
 
-    
+
     def attack(self):
         if (checkAttack):
             pass
@@ -108,14 +118,13 @@ class Soldier(pygame.sprite.Sprite):
                     break
                 if x < toX:
                     x += vel
-                else: 
+                else:
                     x -= vel
                 if y < toY:
                     y += vel
                 else:
                     y -= vel
-    
+
     def checkAttack(self, check):
         pass
     '''
-

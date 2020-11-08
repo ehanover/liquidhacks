@@ -29,7 +29,7 @@ class State:
         centerx = WIDTH//2
         centery = HEIGHT//2 + 120
         ret = []
-        
+
         # Stolen from https://stackoverflow.com/a/13901170
         radius = 180
         chord = 2*SOLDIER_RADIUS # (how close each soldier is along the spiral)
@@ -98,6 +98,7 @@ class State:
                 for s in self.soldiers:
                     if navigator.dist(e, s) < DETONATE_DIST:
                         s.health -= DETONATE_DAMAGE
+                        s.changeColor((255,0,0))
             else:
                 e.move(self.enemies)
         for e in self.enemies:
@@ -136,7 +137,7 @@ class State:
         # for e in self.enemies:
         #     e.draw(screen)
         self.sprite_group.draw(screen)
-        
+
 
         # transparent stuff is copied from stackoverflow
         if self.amoving:
@@ -169,7 +170,7 @@ class State:
                 self.selected_soldiers[i] = True
             else:
                 self.selected_soldiers[i] = False
-                
+
     def select_all(self):
         self.selected_soldiers = [1 for _ in self.selected_soldiers]
 
